@@ -3,3 +3,4 @@ uvicorn
 psycopg2-binary
 pyotp
 jinja2
+python-multipart
