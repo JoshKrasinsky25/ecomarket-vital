@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>EcoMarket Vital - Panel de Consultas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center sticky top-0 z-50">
+    <div>
+      <h1 class="text-xl font-black text-emerald-400 tracking-wide">EcoMarket Vital | Base de Datos II</h1>
+      <p class="text-xs text-slate-400">Usuario: <span class="text-white font-semibold">{{ user }}</span> (Rol RBAC: <span class="text-emerald-400 font-mono font-bold">{{ rol }}</span>)</p>
+    </div>
+    <a href="/" class="text-xs bg-rose-600 hover:bg-rose-500 py-1.5 px-3 rounded text-white font-bold transition">Cerrar Sesión</a>
+  </header>
+  <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2 h-fit">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Las 10 Consultas SQL</h2>
+      {% set consultas = [
+        ('1', '1. Inventario Bajo'),
+        ('2', '2. Ventas x Pago'),
+        ('3', '3. Facturación Cliente [JOIN 1]'),
+        ('4', '4. Ventas x Sucursal [JOIN 2]'),
+        ('5', '5. Empleados y Sucursal [JOIN 3]'),
+        ('6', '6. Transacciones Recientes [JOIN 4]'),
+        ('7', '7. Ranking Empleados'),
+        ('8', '8. Compra Cruzada (Subconsulta)'),
+        ('9', '9. Crecimiento Mensual (CTE)'),
+        ('10', '10. Súper Compradores (HAVING)')
+      ] %}
+      {% for id, label in consultas %}
+        <a href="/dashboard?rol={{ rol }}&user={{ user }}&query_id={{ id }}" 
+           class="block text-xs p-3 rounded-xl transition font-medium {% if query_id == id %} bg-emerald-600 text-white font-bold shadow-lg {% else %} bg-slate-800 text-slate-300 hover:bg-slate-700 {% endif %}">
+          {{ label }}
+        </a>
+      {% endfor %}
+
+      <!-- BONO EXTRA: Formulario de Registro de Inventario -->
+      <div class="pt-4 border-t border-slate-800 mt-4">
+        <h3 class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-2">➕ Agregar al Catálogo</h3>
+        <form action="/producto/nuevo" method="POST" class="space-y-2 text-xs">
+          <input type="hidden" name="rol" value="{{ rol }}">
+          <input type="hidden" name="user" value="{{ user }}">
+          <input type="text" name="nombre" placeholder="Nombre producto" required class="w-full bg-slate-800 p-2 rounded border border-slate-700">
+          <select name="categoria" class="w-full bg-slate-800 p-2 rounded border border-slate-700 text-slate-300">
+            <option value="Alimentos">Alimentos</option>
+            <option value="Cosmética">Cosmética</option>
+            <option value="Limpieza">Limpieza</option>
+          </select>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" step="0.01" name="precio" placeholder="Precio ($)" required class="w-full bg-slate-800 p-2 rounded border border-slate-700">
+            <input type="number" name="stock" placeholder="Stock" required class="w-full bg-slate-800 p-2 rounded border border-slate-700">
+          </div>
+          <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-1.5 rounded transition">
+            Guardar Producto
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="md:col-span-3 bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-base font-bold text-white">Resultados de la Consulta #{{ query_id }}</h2>
+        <span class="text-[11px] bg-slate-800 text-emerald-400 px-3 py-1 rounded-full font-mono font-semibold border border-slate-700">
+          Total registros: {{ resultados | length }}
+        </span>
+      </div>
+
+      {% if db_error %}
+        <div class="bg-rose-500/20 border border-rose-500 text-rose-300 p-4 rounded-xl mb-4 text-xs">
+          <strong>Aviso de Base de Datos:</strong> {{ db_error }}
+        </div>
+      {% endif %}
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-800/80 text-emerald-400 uppercase font-mono tracking-wider border-b border-slate-700">
+              {% for col in columnas %}
+                <th class="p-3.5">{{ col }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 font-mono">
+            {% for fila in resultados %}
+              <tr class="hover:bg-slate-800/40 transition">
+                {% for col in columnas %}
+                  <td class="p-3.5 text-slate-300">{{ fila[col] }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
